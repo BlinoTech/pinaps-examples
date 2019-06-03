@@ -1,4 +1,5 @@
 import pygame
+from enum import Enum
 
 from pinaps.piNapsController import PiNapsController
 from pinaps.blinoParser import BlinoParser
@@ -9,6 +10,13 @@ WHITE = (255, 255, 255)
 BLUE =  (  0,   0, 255)
 GREEN = (  0, 255,   0)
 RED =   (255,   0,   0)
+
+class GameState(Enum):
+    Unconnected = 1
+    Begin = 2
+    InProgress = 3
+    Halted = 4
+    end = 5
 
 ##def onQualityValue(quality):
 ##    print("Quality value: %d" % quality)
@@ -21,52 +29,34 @@ RED =   (255,   0,   0)
 ##        pinapsOne.activateGreenLED()
 ##        print ("GREEN");
 
-class PlasmaBall(pygame.sprite.Sprite):
-    def __init__(self):
+class AnimatedObject(pygame.sprite.Sprite):
+    def __init__(self, animationRate, animationImages):
+        super(AnimatedObject, self).__init__()
 
-        super(PlasmaBall, self).__init__()
-        self.images = []
-        self.images.append(pygame.image.load('resources/plasma/plasma00.png'))
-        self.images.append(pygame.image.load('resources/plasma/plasma01.png'))
-        self.images.append(pygame.image.load('resources/plasma/plasma02.png'))
-        self.images.append(pygame.image.load('resources/plasma/plasma03.png'))
-        self.images.append(pygame.image.load('resources/plasma/plasma04.png'))
-        self.images.append(pygame.image.load('resources/plasma/plasma05.png'))
-        self.images.append(pygame.image.load('resources/plasma/plasma06.png'))
-        self.images.append(pygame.image.load('resources/plasma/plasma07.png'))
-        self.images.append(pygame.image.load('resources/plasma/plasma08.png'))
-        self.images.append(pygame.image.load('resources/plasma/plasma09.png'))
-        self.images.append(pygame.image.load('resources/plasma/plasma10.png'))
-        self.images.append(pygame.image.load('resources/plasma/plasma11.png'))
-
-        for pos in range(len(self.images)):
-            self.images[pos] = pygame.transform.scale(self.images[pos], (128, 128))
-
-        #self.images.append(self.image3)
-        # assuming both images are 64x64 pixels
-
-        self.index = 0
-        self.image = self.images[self.index]
-        self.rect = pygame.Rect(5, 5, 64, 64)
+        self.animationIndex = 0
+        self.animationRate = animationRate
+        self.animationImages = animationImages
+        self.image = self.animationImages[self.animationIndex]
         self.currentTick = 0
-        self.animationTick = 0
-
-    def update(self, tick, position):
+        self.rect = pygame.Rect(0, 0, 64, 64) #???
+    
+    def update(self, tick):
         '''This method iterates through the elements inside self.images and 
         displays the next one each tick. For a slower animation, you may want to 
         consider using a timer of some sort so it updates slower.'''
         self.currentTick += 1
-        if(self.currentTick >= self.animationTick):
-            self.index += 1
+        if(self.currentTick >= self.animationRate):
+            self.animationIndex += 1
             self.currentTick = 0
-        if self.index >= len(self.images):
-            self.index = 0
-        self.image = self.images[self.index]
+        if self.animationIndex >= len(self.animationImages):
+            self.animationIndex = 0
+        self.image = self.animationImages[self.animationIndex]
 
-        self.rect.center = position
+    def imageSize(self, size):
+        self.animationImages = [pygame.transform.scale(x, size) for x in self.animationImages]; self.animationImages
 
-    def setAnimationTick(self, tick):
-        self.animationTick = tick
+    def imagePos(self, pos):
+        self.rect.center = pos
 
 def onQualityValueOne(quality):
     print("")
@@ -102,38 +92,54 @@ pinapsTwo = PiNapsController(0x98)
 def main():
     ##Setup game##
     tugValue = 120
-    tick = 0
+    globalTick = 0
 
     #Initialize the pygame module#
     pygame.init()
     
     #load and set the logo#
-    logo = pygame.image.load("resources/logo32x32.png")
+    logo = pygame.image.load("resources/Blino_Logo.png")
     pygame.display.set_icon(logo)
-    pygame.display.set_caption("movement")
+    pygame.display.set_caption("Blino - Mind Wrestle")
     
     #Create a surface on screen that has the size of 240 x 180#
-    screen_width = 1280
-    screen_height = 720
+    displayInfo = pygame.display.Info()
+    screen_width = displayInfo.current_w
+    screen_height = displayInfo.current_h
     screen = pygame.display.set_mode((screen_width, screen_height))
 
-    #load image (it is in same directory)#
-    image = pygame.image.load("resources/01_image.png")
-    #Set the colorkey, so the pink border is not visible anymore#
-    image.set_colorkey((255,0,255))
-    sprite = PlasmaBall()
-    sprite.setAnimationTick(15)
-    group = pygame.sprite.Group(sprite)
+    #Plasma Sprite Setup#
+    imgPlasmas = []
+    imgPlasmas.append(pygame.image.load('resources/plasma/plasma00.png'))
+    imgPlasmas.append(pygame.image.load('resources/plasma/plasma01.png'))
+    imgPlasmas.append(pygame.image.load('resources/plasma/plasma02.png'))
+    imgPlasmas.append(pygame.image.load('resources/plasma/plasma03.png'))
+    imgPlasmas.append(pygame.image.load('resources/plasma/plasma04.png'))
+    imgPlasmas.append(pygame.image.load('resources/plasma/plasma05.png'))
+    imgPlasmas.append(pygame.image.load('resources/plasma/plasma06.png'))
+    imgPlasmas.append(pygame.image.load('resources/plasma/plasma07.png'))
+    imgPlasmas.append(pygame.image.load('resources/plasma/plasma08.png'))
+    imgPlasmas.append(pygame.image.load('resources/plasma/plasma09.png'))
+    imgPlasmas.append(pygame.image.load('resources/plasma/plasma10.png'))
+    imgPlasmas.append(pygame.image.load('resources/plasma/plasma11.png'))
+    sptPlasma = AnimatedObject(15, imgPlasmas)
+    sptPlasma.imageSize([128,128])
+    sptPlasma.imagePos([0,0])
+    group = pygame.sprite.Group(sptPlasma)
 
     #Set the alpha value to 128 (0 fully transparent, 255 opaque)#
     #image.set_alpha(128)
-    bgd_image = pygame.image.load("resources/background.png")
-
-    #blit image(s) to screen#
-    screen.blit(bgd_image,(0,0)) # first background
+    #imgBackgrounds = []
+    #imgBackgrounds.append(pygame.image.load("resources/background.png").convert_alpha())
+    #sptBackground = AnimatedObject(1, imgBackgrounds)
+    #sptBackground.imageSize([screen_width, screen_height])
     #Instead of blitting the background image you could fill it 
     #(uncomment the next line to do so)
     #screen.fill((255,0,0))
+    #group = pygame.sprite.Group([sptBackground, sptPlasma])
+    imgBackground = pygame.image.load("resources/background.png")
+    imgBackground = pygame.transform.scale(imgBackground, [screen_width, screen_height])
+    imgBackground = imgBackground.convert_alpha()
 
     #Define the position of the smily#
     xpos = 740
@@ -141,10 +147,7 @@ def main():
     #How many pixels we move our smily each frame#
     step_x = 20
     step_y = 20
-    
-    #And blit it on screen#
-    screen.blit(image, (xpos, ypos))
-    
+
     # update the screen to make the changes visible (fullscreen update)
     pygame.display.flip()
     
@@ -177,9 +180,10 @@ def main():
     #Define a variable to control the main loop#
     running = True
     while(running):
-        #timeBegin = pygame.time.get_ticks()
-
         screen.fill((0,0,0))
+        screen.blit(imgBackground,(0,0))
+
+        #screen.fill((0,0,0))
         #Event handling, gets all event from the eventqueue#
         for event in pygame.event.get():
             # only do something if the event if of type QUIT
@@ -209,20 +213,21 @@ def main():
         #xpos = tugValue
 
         ##Draw lines##
-        pygame.draw.line(screen,WHITE,(0,ypos+30),(xpos-30,ypos+30),2)
-        pygame.draw.line(screen,WHITE,(xpos,ypos+30),(screen_width - 40,ypos+30),2)
+        #pygame.draw.line(screen,WHITE,(0,ypos+30),(xpos-30,ypos+30),2)
+        #pygame.draw.line(screen,WHITE,(xpos,ypos+30),(screen_width - 40,ypos+30),2)
 
         #Now blit the smily on screen#
         #screen.blit(image, (xpos, ypos))
+        sptPlasma.imagePos([xpos,ypos])
         group.draw(screen)
-        group.update(tick, [xpos, ypos])
+        group.update(globalTick)
         #And update the screen (dont forget that!)#
         pygame.display.flip()
         
         #This will slow it down to 10 fps, so you can watch it,#
         #Otherwise it would run too fast#
         clock.tick(60)
-        tick = tick + 1
+        globalTick = globalTick + 1
 
         #timeEnd = pygame.time.get_ticks
         #if(timeEnd - timeBegin < )
