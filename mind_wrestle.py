@@ -201,6 +201,7 @@ class MindWrestle:
         #self.sptExplosion.setImagePos(self.posMenu)
         self.sptExplosion.setImageSize([self.screen_width, self.screen_height])
         self.sptExplosion.setImagePos([0,0])
+        self.sptExplosion.convertAlpha()
 
         self.grpExplosion = pygame.sprite.OrderedUpdates(self.sptExplosion)
 
@@ -432,6 +433,8 @@ class MindWrestle:
         if(self.tmrExplosion == 17):
             self.state = GameState.End
             self.idxBackground = random.randint(0,5)
+            self.isExplosion = False
+            self.tmrExplosion = 0
     def end(self):
         print "Displays game end"
 
@@ -445,7 +448,9 @@ class MindWrestle:
             if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                 self.isRunning = False
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
-                self.state = GameState.Unconnected  
+                self.state = GameState.Unconnected
+                self.sptPlasma.setImagePos(self.posStartingPlasma)
+                self.winner = 0
 
         #self.screen.fill(WHITE)
 
