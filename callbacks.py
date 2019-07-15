@@ -12,7 +12,6 @@ def onQualityValue(quality):
         pinapsController.activateGreenLED()
         print ("GREEN");
 
-
 def onAttention(attention):
     print("Attention value: %d" % attention)
 
