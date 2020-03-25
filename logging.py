@@ -4,10 +4,10 @@ from pinaps.blinoParser import BlinoParser
 pinapsController = PiNapsController()
 
 def main():
-    #pinapsController.defaultInitialise()
-    pinapsController.setControlInterfaceI2C()
-    pinapsController.setEEGSensorInterfaceI2C()
-    pinapsController.setBasicMode()
+    pinapsController.defaultInitialise()
+    #pinapsController.setControlInterfaceI2C()
+    #pinapsController.setEEGSensorInterfaceI2C()
+    #pinapsController.setBasicMode()
 
     logFilename = "loggingExample.csv"
     logFile = open(logFilename, "wb")  # Open file to write as binary.
@@ -17,15 +17,16 @@ def main():
 
     blinoParser = BlinoParser()
 
-    while(1):
-        while(pinapsController.dataWaiting()):
-            ##Read Sensor##
-            data = pinapsController.readEEGSensor()
+    while True:
+        while pinapsController.dataWaiting():
+            #Reading EEG.
+            data = pinapsController.readEEGSensorBuffer()
 
-            ##Parsing##
-            blinoParser.parseByte(data)
+            #Parsing.
+            for d in data:
+                blinoParser.parseByte(d)
 
-            ##Logging##
+            #Printing.
             if(blinoParser.updatedFFT):
                 packedd = blinoParser.parsedPacket
 

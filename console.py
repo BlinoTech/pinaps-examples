@@ -4,6 +4,36 @@ import argparse
 from pinaps.piNapsController import PiNapsController
 from pinaps.blinoParser import BlinoParser
 
+def onQualityValue(quality):
+    print("Quality value: %d" % quality)
+    if quality > 10:
+        pinapsController.activateRedLED()
+        pinapsController.deactivateGreenLED()
+        print ("RED");
+    else:
+        pinapsController.deactivateRedLED()
+        pinapsController.activateGreenLED()
+        print ("GREEN");
+
+def onAttention(attention):
+    print("Attention value: %d" % attention)
+
+def onMedititation(meditation):
+    print("Meditation value: %d" % meditation)
+
+def onEEGPowerReceived(eegSignal):
+    print("Delta value: %d" % eegSignal.delta)
+    print("Theta value: %d" % eegSignal.theta)
+    print("Low alpha value: %d" % eegSignal.lAlpha)
+    print("High alpha value: %d" % eegSignal.hAlpha)
+    print("Low beta value: %d" % eegSignal.lBeta)
+    print("High beta value: %d" % eegSignal.hBeta)
+    print("Low Gamma value: %d" % eegSignal.lGamma)
+    print("Medium gamma value: %d" % eegSignal.mGamma)
+
+def onRawSignal(rawSignal):
+    print("Raw value: %d" % rawSignal)
+
 pinapsController = PiNapsController()
 
 def main():
@@ -39,38 +69,27 @@ def main():
 
     if(pinapArgs.logging != None):
         logFilename = pinapArgs.logging
-        logFile = open(logFilename, "wb") # file to write to
+        logFile = open(logFilename, "wb") # Open file to write as binary.
 
     blinoParser = BlinoParser()
 
-    while(1):
-        while(pinapsController.dataWaiting()):
-            ##Read Sensor##
-            data = pinapsController.readEEGSensor()
+    blinoParser = BlinoParser()
+    blinoParser.qualityCallback = onQualityValue
+    blinoParser.attentionCallback = onAttention
+    blinoParser.meditationCallback = onMedititation
+    blinoParser.eegPowersCallback = onEEGPowerReceived
+    blinoParser.rawSignal = onRawSignal
 
-            ##Parsing##
-            blinoParser.parseByte(data)
+    while True:
+        while pinapsController.dataWaiting():
+            #Reading EEG.
+            data = pinapsController.readEEGSensorBuffer()
 
-            ##Printing##
-            if(pinapArgs.printing and blinoParser.updatedFFT):
-                packedd = blinoParser.parsedPacket
+            #Parsing.
+            for d in data:
+                blinoParser.parseByte(d)
 
-                print("")
-                print("Quality value: %d" % packedd.quality)
-                print("Attention value: %d" % packedd.attention)
-                print("Meditation value: %d" % packedd.meditation)
-                print("Delta value: %d" % packedd.EEGPowers.delta)
-                print("Theta value: %d" % packedd.EEGPowers.theta)
-                print("Low alpha value: %d" % packedd.EEGPowers.lAlpha)
-                print("High alpha value: %d" % packedd.EEGPowers.hAlpha)
-                print("Low beta value: %d" % packedd.EEGPowers.lBeta)
-                print("High beta value: %d" % packedd.EEGPowers.hBeta)
-                print("Low Gamma value: %d" % packedd.EEGPowers.lGamma)
-                print("Medium gamma value: %d" % packedd.EEGPowers.mGamma)
-            if(pinapArgs.printing and blinoParser.updatedRaw):
-                print("Raw value: %d" % blinoParser.raw)
-
-            ##Logging##
+            #Logging.
             if(pinapArgs.logging and blinoParser.updatedFFT):
                 packedd = blinoParser.parsedPacket
 

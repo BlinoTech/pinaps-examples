@@ -42,10 +42,11 @@ def main():
 
     pinapsController.deactivateAllLEDs() 
 
-    while(1):
-        while(pinapsController.dataWaiting()):
-            data = pinapsController.readEEGSensor()
-            blinoParser.parseByte(data)
+    while True:
+        while pinapsController.dataWaiting():
+            data = pinapsController.readEEGSensorBuffer()
+            for d in data:
+                blinoParser.parseByte(d)
 
 if __name__ == '__main__':
     main()
