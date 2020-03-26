@@ -20,11 +20,10 @@ def main():
     while True:
         while pinapsController.dataWaiting():
             #Reading EEG.
-            data = pinapsController.readEEGSensorBuffer()
+            data = pinapsController.readEEGSensor()
 
             #Parsing.
-            for d in data:
-                blinoParser.parseByte(d)
+            blinoParser.parse(data)
 
             #Printing.
             if(blinoParser.updatedFFT):
