@@ -78,22 +78,11 @@ def main():
     blinoParser.rawSignal = onRawSignal
 
     while True:
-        while pinapsController.dataWaiting():
             #Reading EEG.
-            data = pinapsController.readEEGSensorBuffer()
+            data = pinapsController.readEEGSensor()
 
             #Parsing.
-            for d in data:
-                blinoParser.parseByte(d)
-
-            #Printing.
-            if(blinoParser.updatedFFT):
-                packedd = blinoParser.parsedPacket
-
-                print("")
-                print("Quality value: %d" % packedd.quality)
-                print("Attention value: %d" % packedd.attention)
-                print("Meditation value: %d" % packedd.meditation)
+            blinoParser.parse(data)
 
 
 if __name__ == '__main__':

@@ -81,32 +81,30 @@ def main():
     blinoParser.rawSignal = onRawSignal
 
     while True:
-        while pinapsController.dataWaiting():
-            #Reading EEG.
-            data = pinapsController.readEEGSensorBuffer()
+        #Reading EEG.
+        data = pinapsController.readEEGSensor()
 
-            #Parsing.
-            for d in data:
-                blinoParser.parseByte(d)
+        #Parsing.
+        blinoParser.parse(data)
 
-            #Logging.
-            if(pinapArgs.logging and blinoParser.updatedFFT):
-                packedd = blinoParser.parsedPacket
+        #Logging.
+        if(pinapArgs.logging and blinoParser.updatedFFT):
+            packedd = blinoParser.parsedPacket
 
-                logFile.write("")
-                logFile.write(bytes(packedd.quality))
-                logFile.write(bytes(packedd.attention))
-                logFile.write(bytes(packedd.meditation))
-                logFile.write(bytes(packedd.EEGPowers.delta))
-                logFile.write(bytes(packedd.EEGPowers.theta))
-                logFile.write(bytes(packedd.EEGPowers.lAlpha))
-                logFile.write(bytes(packedd.EEGPowers.hAlpha))
-                logFile.write(bytes(packedd.EEGPowers.lBeta))
-                logFile.write(bytes(packedd.EEGPowers.hBeta))
-                logFile.write(bytes(packedd.EEGPowers.lGamma))
-                logFile.write(bytes(packedd.EEGPowers.mGamma))
-            if(pinapArgs.logging and blinoParser.updatedRaw):
-                logFile.write(bytes(blinoParser.raw))
+            logFile.write("")
+            logFile.write(bytes(packedd.quality))
+            logFile.write(bytes(packedd.attention))
+            logFile.write(bytes(packedd.meditation))
+            logFile.write(bytes(packedd.EEGPowers.delta))
+            logFile.write(bytes(packedd.EEGPowers.theta))
+            logFile.write(bytes(packedd.EEGPowers.lAlpha))
+            logFile.write(bytes(packedd.EEGPowers.hAlpha))
+            logFile.write(bytes(packedd.EEGPowers.lBeta))
+            logFile.write(bytes(packedd.EEGPowers.hBeta))
+            logFile.write(bytes(packedd.EEGPowers.lGamma))
+            logFile.write(bytes(packedd.EEGPowers.mGamma))
+        if(pinapArgs.logging and blinoParser.updatedRaw):
+            logFile.write(bytes(blinoParser.raw))
 
 
 if __name__ == '__main__':

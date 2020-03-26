@@ -33,6 +33,7 @@ pinapsController = PiNapsController()
 
 def main():
     pinapsController.defaultInitialise()
+    pinapsController.setFullMode()
 
     blinoParser = BlinoParser()
     blinoParser.qualityCallback = onQualityValue
@@ -43,10 +44,8 @@ def main():
     pinapsController.deactivateAllLEDs() 
 
     while True:
-        while pinapsController.dataWaiting():
-            data = pinapsController.readEEGSensorBuffer()
-            for d in data:
-                blinoParser.parseByte(d)
+        data = pinapsController.readEEGSensor()
+        blinoParser.parse(data)
 
 if __name__ == '__main__':
     main()

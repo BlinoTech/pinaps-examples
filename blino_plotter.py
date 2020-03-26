@@ -27,9 +27,9 @@ def main():
 
 	while True:
 		while pinapsController.dataWaiting():
-			data = pinapsController.readEEGSensorBuffer()
-		for d in data:
-			blinoParser.parseByte(d)
+			data = pinapsController.readEEGSensor()
+		blinoParser.parse(data)
+
 		if(blinoParser.updatedFFT):
 			packedd = blinoParser.parsedPacket
 			if(packedd.quality < 26):
