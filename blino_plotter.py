@@ -1,10 +1,9 @@
 import matplotlib.pyplot as plt
 from pinaps.piNapsController import PiNapsController
-from pinaps.blinoParser import BlinoParser
+from NeuroParser import NeuroParser
 
+counter = 0
 def main():
-
-	counter = 1
 	counters = []
 	deltas = []
 	thetas = []
@@ -22,39 +21,37 @@ def main():
 
 	pinapsController = PiNapsController()
 	pinapsController.defaultInitialise()
+	def plotCallback(packet):
+		if(packet.code == NeuroParser.DataPacket.kIntEEGPowers):
+			global counter
+			counter += 1
+			deltas.append(packet.delta)
+			thetas.append(packet.theta)
+			lAlphas.append(packet.lAlpha)
+			hAlphas.append(packet.hAlpha)
+			lBetas.append(packet.lBeta)
+			hBetas.append(packet.hBeta)
+			lGammas.append(packet.lGamma)
+			mGammas.append(packet.mGamma)
+			counters.append(counter)
 
-	blinoParser = BlinoParser()
+			plt.plot(counters, deltas)
+			plt.plot(counters, thetas)
+			plt.plot(counters, lAlphas)
+			plt.plot(counters, hAlphas)
+			plt.plot(counters, lBetas)
+			plt.plot(counters, hBetas)
+			plt.plot(counters, lGammas)
+			plt.plot(counters, mGammas)
+			plt.draw()
+			plt.pause(0.001)
+
+	aParser = NeuroParser()
 
 	while True:
-		while pinapsController.dataWaiting():
-			data = pinapsController.readEEGSensor()
-		blinoParser.parse(data)
-
-		if(blinoParser.updatedFFT):
-			packedd = blinoParser.parsedPacket
-			if(packedd.quality < 26):
-				print("Quality low enough for plot: %d", packedd.quality)
-				deltas.append(packedd.EEGPowers.delta)
-				thetas.append(packedd.EEGPowers.theta)
-				lAlphas.append(packedd.EEGPowers.lAlpha)
-				hAlphas.append(packedd.EEGPowers.hAlpha)
-				lBetas.append(packedd.EEGPowers.lBeta)
-				hBetas.append(packedd.EEGPowers.hBeta)
-				lGammas.append(packedd.EEGPowers.lGamma)
-				mGammas.append(packedd.EEGPowers.mGamma)
-				counters.append(counter)
-				counter += 1
-
-				plt.plot(counters, deltas)
-				plt.plot(counters, thetas)
-				plt.plot(counters, lAlphas)
-				plt.plot(counters, hAlphas)
-				plt.plot(counters, lBetas)
-				plt.plot(counters, hBetas)
-				plt.plot(counters, lGammas)
-				plt.plot(counters, mGammas)
-				plt.draw()
-				plt.pause(0.001)
+		data = pinapsController.readEEGSensor()
+		for d in data:
+			aParser.parse(d, plotCallback)
 
 if __name__ == '__main__':
     main()

@@ -2,37 +2,7 @@ import sys
 import argparse
 
 from pinaps.piNapsController import PiNapsController
-from pinaps.blinoParser import BlinoParser
-
-def onQualityValue(quality):
-    print("Quality value: %d" % quality)
-    if quality > 10:
-        pinapsController.activateRedLED()
-        pinapsController.deactivateGreenLED()
-        print ("RED");
-    else:
-        pinapsController.deactivateRedLED()
-        pinapsController.activateGreenLED()
-        print ("GREEN");
-
-def onAttention(attention):
-    print("Attention value: %d" % attention)
-
-def onMedititation(meditation):
-    print("Meditation value: %d" % meditation)
-
-def onEEGPowerReceived(eegSignal):
-    print("Delta value: %d" % eegSignal.delta)
-    print("Theta value: %d" % eegSignal.theta)
-    print("Low alpha value: %d" % eegSignal.lAlpha)
-    print("High alpha value: %d" % eegSignal.hAlpha)
-    print("Low beta value: %d" % eegSignal.lBeta)
-    print("High beta value: %d" % eegSignal.hBeta)
-    print("Low Gamma value: %d" % eegSignal.lGamma)
-    print("Medium gamma value: %d" % eegSignal.mGamma)
-
-def onRawSignal(rawSignal):
-    print("Raw value: %d" % rawSignal)
+from NeuroParser import NeuroParser
 
 pinapsController = PiNapsController()
 
@@ -50,7 +20,6 @@ def main():
                     help='Print to console.')
 
     pinapArgs = argParser.parse_args()
-    #print(pinapArgs)
 
     if(pinapArgs.control == 'GPIO'):
         pinapsController.setControlInterfaceGPIO()
@@ -71,40 +40,54 @@ def main():
         logFilename = pinapArgs.logging
         logFile = open(logFilename, "wb") # Open file to write as binary.
 
-    blinoParser = BlinoParser()
-
-    blinoParser = BlinoParser()
-    blinoParser.qualityCallback = onQualityValue
-    blinoParser.attentionCallback = onAttention
-    blinoParser.meditationCallback = onMedititation
-    blinoParser.eegPowersCallback = onEEGPowerReceived
-    blinoParser.rawSignal = onRawSignal
+    def eegCallback(packet):
+        if(packet.code == NeuroParser.DataPacket.kPoorQuality):
+            if(pinapArgs.printing):
+                print("Poor quality: " + str(packet.poorQuality))
+            if(pinapArgs.logging):
+                logFile.write(bytes(packet.poorQuality))
+        if(packet.code == NeuroParser.DataPacket.kAttention):
+            if(pinapArgs.printing):
+                print("Attention: " + str(packet.attention))
+            if(pinapArgs.logging):
+                logFile.write(bytes(packet.attention))
+        if(packet.code == NeuroParser.DataPacket.kMeditation):
+            if(pinapArgs.printing):
+                print("Meditation: " + str(packet.meditation))
+            if(pinapArgs.logging):
+                logFile.write(bytes(packet.meditation))
+        if(packet.code == NeuroParser.DataPacket.kRawSignal):
+            if(pinapArgs.printing):
+                print("Raw: " + str(packet.rawSamples))
+            if(pinapArgs.logging):
+                logFile.write(bytes(packet.rawSamples))
+        if(packet.code == NeuroParser.DataPacket.kIntEEGPowers):
+            if(pinapArgs.printing):
+                print("Delta Powers: " + str(packet.delta))
+                print("Theta Powers: " + str(packet.theta))
+                print("Low Alpha Powers: " + str(packet.lAlpha))
+                print("High Alpha Powers: " + str(packet.hAlpha))
+                print("Low Beta Powers: " + str(packet.lBeta))
+                print("High Beta Powers: " + str(packet.hBeta))
+                print("Low Gamma Powers: " + str(packet.lGamma))
+                print("Medium Gamma Powers: " + str(packet.mGamma))
+            if(pinapArgs.logging):
+                logFile.write(bytes(packet.delta))
+                logFile.write(bytes(packet.theta))
+                logFile.write(bytes(packet.lAlpha))
+                logFile.write(bytes(packet.hAlpha))
+                logFile.write(bytes(packet.lBeta))
+                logFile.write(bytes(packet.hBeta))
+                logFile.write(bytes(packet.lGamma))
+                logFile.write(bytes(packet.mGamma))
 
     while True:
-        #Reading EEG.
-        data = pinapsController.readEEGSensor()
+        aParser = NeuroParser()
 
-        #Parsing.
-        blinoParser.parse(data)
-
-        #Logging.
-        if(pinapArgs.logging and blinoParser.updatedFFT):
-            packedd = blinoParser.parsedPacket
-
-            logFile.write("")
-            logFile.write(bytes(packedd.quality))
-            logFile.write(bytes(packedd.attention))
-            logFile.write(bytes(packedd.meditation))
-            logFile.write(bytes(packedd.EEGPowers.delta))
-            logFile.write(bytes(packedd.EEGPowers.theta))
-            logFile.write(bytes(packedd.EEGPowers.lAlpha))
-            logFile.write(bytes(packedd.EEGPowers.hAlpha))
-            logFile.write(bytes(packedd.EEGPowers.lBeta))
-            logFile.write(bytes(packedd.EEGPowers.hBeta))
-            logFile.write(bytes(packedd.EEGPowers.lGamma))
-            logFile.write(bytes(packedd.EEGPowers.mGamma))
-        if(pinapArgs.logging and blinoParser.updatedRaw):
-            logFile.write(bytes(blinoParser.raw))
+        while True:
+            data = pinapsController.readEEGSensor()
+            for d in data:
+                aParser.parse(d, eegCallback)
 
 
 if __name__ == '__main__':

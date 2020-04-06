@@ -2,7 +2,7 @@ import sys
 import argparse
 
 from pinaps.piNapsController import PiNapsController
-from pinaps.blinoParser import BlinoParser
+from NeuroParser import NeuroParser
 
 def onQualityValue(quality):
     print("Quality value: %d" % quality)
@@ -68,21 +68,12 @@ def main():
         print("Full mode includes the following information: Signal Quality, Attention, Meditation, FFT powers & raw signal.")
         pinapsController.setFullMode()
 
-    blinoParser = BlinoParser()
-
-    blinoParser = BlinoParser()
-    blinoParser.qualityCallback = onQualityValue
-    blinoParser.attentionCallback = onAttention
-    blinoParser.meditationCallback = onMedititation
-    blinoParser.eegPowersCallback = onEEGPowerReceived
-    blinoParser.rawSignal = onRawSignal
+    aParser = NeuroParser()
 
     while True:
-            #Reading EEG.
-            data = pinapsController.readEEGSensor()
-
-            #Parsing.
-            blinoParser.parse(data)
+        data = pinapsController.readEEGSensor()
+        for d in data:
+            aParser.parse(d, printCallback)
 
 
 if __name__ == '__main__':
