@@ -1,33 +1,24 @@
 from pinaps.piNapsController import PiNapsController
-from pinaps.blinoParser import BlinoParser
+from NeuroParser import NeuroParser
 
-def onQualityValue(quality):
-    print("Quality value: %d" % quality)
-    if quality > 10:
-        pinapsController.activateRedLED()
-        pinapsController.deactivateGreenLED()
-        print ("RED");
-    else:
-        pinapsController.deactivateRedLED()
-        pinapsController.activateGreenLED()
-        print ("GREEN");
-
-def onAttention(attention):
-    print("Attention value: %d" % attention)
-
-def onMedititation(meditation):
-    print("Meditation value: %d" % meditation)
-
-
-def onEEGPowerReceived(eegSignal):
-    print("Delta value: %d" % eegSignal.delta)
-    print("Theta value: %d" % eegSignal.theta)
-    print("Low alpha value: %d" % eegSignal.lAlpha)
-    print("High alpha value: %d" % eegSignal.hAlpha)
-    print("Low beta value: %d" % eegSignal.lBeta)
-    print("High beta value: %d" % eegSignal.hBeta)
-    print("Low Gamma value: %d" % eegSignal.lGamma)
-    print("Medium gamma value: %d" % eegSignal.mGamma)
+def printCallback(packet):
+    if(packet.code == NeuroParser.DataPacket.kPoorQuality):
+        print("Poor quality: " + str(packet.poorQuality))
+    if(packet.code == NeuroParser.DataPacket.kAttention):
+        print("Attention: " + str(packet.attention))
+    if(packet.code == NeuroParser.DataPacket.kMeditation):
+        print("Meditation: " + str(packet.meditation))
+    if(packet.code == NeuroParser.DataPacket.kRawSignal):
+        print("Raw: " + str(packet.rawSamples))
+    if(packet.code == NeuroParser.DataPacket.kIntEEGPowers):
+        print("Delta Powers: " + str(packet.delta))
+        print("Theta Powers: " + str(packet.theta))
+        print("Low Alpha Powers: " + str(packet.lAlpha))
+        print("High Alpha Powers: " + str(packet.hAlpha))
+        print("Low Beta Powers: " + str(packet.lBeta))
+        print("High Beta Powers: " + str(packet.hBeta))
+        print("Low Gamma Powers: " + str(packet.lGamma))
+        print("Medium Gamma Powers: " + str(packet.mGamma))
 
 pinapsController = PiNapsController()
 
@@ -35,17 +26,14 @@ def main():
     pinapsController.defaultInitialise()
     pinapsController.setFullMode()
 
-    blinoParser = BlinoParser()
-    blinoParser.qualityCallback = onQualityValue
-    blinoParser.attentionCallback = onAttention
-    blinoParser.meditationCallback = onMedititation
-    blinoParser.eegPowersCallback = onEEGPowerReceived
+    pinapsController.deactivateAllLEDs()
 
-    pinapsController.deactivateAllLEDs() 
+    aParser = NeuroParser()
 
     while True:
         data = pinapsController.readEEGSensor()
-        blinoParser.parse(data)
+        for d in data:
+            aParser.parse(d, printCallback)
 
 if __name__ == '__main__':
     main()
