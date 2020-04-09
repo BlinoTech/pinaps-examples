@@ -80,13 +80,12 @@ def main():
                 logFile.write(bytes(packet.hBeta))
                 logFile.write(bytes(packet.lGamma))
                 logFile.write(bytes(packet.mGamma))
+                
+    aParser = NeuroParser()
 
     while True:
-        aParser = NeuroParser()
-
-        while True:
-            data = pinapsController.readEEGSensor()
-            aParser.parse(data, eegCallback)
+        data = pinapsController.readEEGSensor()
+        aParser.parse(data, eegCallback)
 
 
 if __name__ == '__main__':
