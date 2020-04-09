@@ -86,8 +86,7 @@ def main():
 
         while True:
             data = pinapsController.readEEGSensor()
-            for d in data:
-                aParser.parse(d, eegCallback)
+            aParser.parse(data, eegCallback)
 
 
 if __name__ == '__main__':

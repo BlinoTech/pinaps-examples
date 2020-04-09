@@ -45,8 +45,7 @@ def main():
 
     while True:
         data = pinapsController.readEEGSensor()
-        for d in data:
-            aParser.parse(d, logCallback)
+        aParser.parse(data, logCallback)
 
 if __name__ == '__main__':
     main()

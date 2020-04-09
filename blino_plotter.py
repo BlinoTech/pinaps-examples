@@ -50,8 +50,7 @@ def main():
 
 	while True:
 		data = pinapsController.readEEGSensor()
-		for d in data:
-			aParser.parse(d, plotCallback)
+		aParser.parse(data, plotCallback)
 
 if __name__ == '__main__':
     main()
